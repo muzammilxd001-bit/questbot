@@ -22,8 +22,11 @@ client.on(
 
 client.once(GatewayDispatchEvents.Ready, async ({ data, api }) => {
 	currentUserId = data.user.id;
-	// console.log(`Logged in as @${data.user.username}`);
-	console.log('Logged in!');
+	if (process.env.GITHUB_ACTIONS === 'true') {
+		console.log('Logged in!');
+	} else {
+		console.log(`Logged in as @${data.user.username}`);
+	}
 
 	await client.fetchQuests(false);
 	const questsValid = client.questManager!.filterQuestsValidToDo();

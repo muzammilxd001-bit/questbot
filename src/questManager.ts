@@ -148,32 +148,30 @@ export class QuestManager implements Iterable<Quest> {
 
 	/**
 	 * Enroll in a quest.
-	 * @param questId string
+	 * @param quest quest to enroll in
 	 * @param isAndroid boolean
-	 * @warning This API is heavily rate-limited (1 hour). Use with caution.
+	 * @warning This API is heavily rate-limited (45 minutes). Use with caution.
 	 */
-	acceptQuest(
-		questId: string,
-		isAndroid = false,
-	): Promise<Quest | undefined> {
+	acceptQuest(quest: Quest, isAndroid = false): Promise<Quest | undefined> {
 		// console.log(`Accepting quest "${questId}"...`);
 		return this.client.rest
-			.post(`/quests/${questId}/enroll`, {
+			.post(`/quests/${quest.id}/enroll`, {
 				body: {
 					location: isAndroid ? 12 : 11, // QUEST_HOME_MOBILE : QUEST_HOME_DESKTOP | https://docs.discord.food/resources/quests#quest-content-type
 					// location: 19, // QUEST_SHARE_LINK
 					is_targeted: false,
-					metadata_raw: null,
 					metadata_sealed: null,
+					traffic_metadata_raw: quest.raw.traffic_metadata_raw,
+					traffic_metadata_sealed: quest.raw.traffic_metadata_sealed,
 				},
 				headers: {
 					AndroidRequest: isAndroid ? 'true' : 'false',
 				},
 			})
 			.then((r) => {
-				const quest = this.get(questId);
-				quest?.updateUserStatus(r as any);
-				return quest;
+				const q = this.get(quest.id);
+				q?.updateUserStatus(r as any);
+				return q;
 			});
 	}
 
@@ -279,7 +277,7 @@ export class QuestManager implements Iterable<Quest> {
 				`Enrolling in quest "${questName}" (${isAndroid ? 'Android' : 'Desktop'} version)...`,
 			);
 			try {
-				await this.acceptQuest(quest.id, isAndroid);
+				await this.acceptQuest(quest, isAndroid);
 			} catch (err: any) {
 				console.error(
 					`Failed to enroll in quest "${questName}".`,
@@ -368,7 +366,7 @@ export class QuestManager implements Iterable<Quest> {
 	) {
 		const maxFuture = 10,
 			speed = 7,
-			interval = 1;
+			interval = 7;
 		const enrolledAt = new Date(
 			quest.userStatus?.enrolled_at as any,
 		).getTime();
