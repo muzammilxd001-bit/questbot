@@ -486,4 +486,29 @@ client.on(GatewayDispatchEvents.InteractionCreate, async ({ data: interaction, a
         }
         await api.interactions.defer(interaction.id, interaction.token, { flags: 64 });
         const sendInitial = async () => api.interactions.editReply(CLIENT_ID!, interaction.token, { content: '⏳ Quest processing shuru ho gayi hai...' });
-        const editFinal   = async (c: string) => void (awai
+        const editFinal   = async (c: string) => void (await api.channels
+                .editMessage(message.channel_id, sentMsg.id, { content: `<@${userId}> ${txt}` })
+                .catch(() => {});
+        };
+        console.log(`[Prefix run] started (user: ${userId})`);
+        startRun(userId);
+        try {
+            await runAndReport(token, message.channel_id, async () => {}, editFinal);
+        } finally {
+            finishRun(userId);
+        }
+        return;
+    }
+
+    // !quest  or  !quest help  → show embed + buttons
+    await api.channels.createMessage(message.channel_id, {
+        ...(buildTokenRequiredEmbed() as any),
+        message_reference: { message_id: message.id },
+    });
+});
+
+// ── Error handling ────────────────────────────────────────────────────────────
+process.on('unhandledRejection', (r) => console.error('[Error] Unhandled Rejection:', r));
+process.on('uncaughtException',  (e) => console.error('[Error] Uncaught Exception:', e.message));
+
+gateway.connect();
