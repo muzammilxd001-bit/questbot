@@ -486,9 +486,12 @@ client.on(GatewayDispatchEvents.InteractionCreate, async ({ data: interaction, a
         }
         await api.interactions.defer(interaction.id, interaction.token, { flags: 64 });
         const sendInitial = async () => api.interactions.editReply(CLIENT_ID!, interaction.token, { content: '⏳ Quest processing shuru ho gayi hai...' });
-        const editFinal   = async (c: string) => void (await api.channels
-                .editMessage(message.channel_id, sentMsg.id, { content: `<@${userId}> ${txt}` })
-                .catch(() => {});
+        const editFinal = async (c: string) => {
+    await api.channels
+        .editMessage(message.channel_id, sentMsg.id, {
+            content: `<@${userId}> ${c}`,
+        })
+        .catch(() => {});       
         };
         console.log(`[Prefix run] started (user: ${userId})`);
         startRun(userId);
