@@ -142,7 +142,7 @@ function buildTokenModal(customId: string, title: string) {
     };
 }
 
-// ── Build "<:Verified:1519754442562339080> Quest Complete" embed ──────────────────────────────────────────────
+// ── Build "Quest Complete" embed ──────────────────────────────────────────────
 function buildCompleteEmbed(quest: Quest) {
     const cfg = quest.config;
     const questName = cfg.messages.quest_name;
@@ -186,7 +186,7 @@ function buildCompleteEmbed(quest: Quest) {
 
     const embed: any = {
         color,
-        title: "✅ Quest Complete!",
+        title: "<:Verified:1519754442562339080> Quest Complete!",
         description: `**${questName}**\n*${gameTitle} • ${publisher}*`,
         fields: [
             { name: "📋 Task", value: taskLines || "Unknown", inline: false },
