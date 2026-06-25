@@ -1,15 +1,14 @@
 {
-  "name": "discord-quest-selfbot",
+  "name": "discord-quest-bot",
   "version": "1.0.0",
-  "description": "demo",
-  "main": "index.js",
+  "description": "Discord Quest Auto-Completion Bot",
+  "main": "bot.ts",
   "scripts": {
     "start": "tsx bot.ts",
-    "dev": "tsx bot.ts",
-    "github": "tsx bot.ts"
+    "dev": "tsx --inspect bot.ts"
   },
   "keywords": [],
-  "author": "aiko-chan-ai",
+  "author": "",
   "license": "GPL-3.0-only",
   "type": "commonjs",
   "engines": {
