@@ -142,7 +142,7 @@ function buildTokenModal(customId: string, title: string) {
     };
 }
 
-// ── Build "Quest Complete" embed ──────────────────────────────────────────────
+// ── Build "<:Verified:1519754442562339080> Quest Complete" embed ──────────────────────────────────────────────
 function buildCompleteEmbed(quest: Quest) {
     const cfg = quest.config;
     const questName = cfg.messages.quest_name;
