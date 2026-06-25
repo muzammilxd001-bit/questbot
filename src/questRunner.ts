@@ -154,4 +154,4 @@ export async function runQuestsForToken(
         console.log = origLog; console.error = origError;
         console.warn = origWarn; console.info = origInfo;
     }
-      }
+}
