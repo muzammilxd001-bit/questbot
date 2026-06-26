@@ -284,16 +284,14 @@ function formatError(err: string): string {
     ) {
         return [
             "🔑 **Invalid or expired token!**",
-            "Token galat hai ya expire ho gaya hai.",
+            "The token is incorrect or has expired.",
             "",
-            "**Token kaise milta hai?**",
-            "1. Discord Web kholo (browser mein)",
-            "2. `Ctrl+Shift+I` → **Network** tab",
-            "3. Koi bhi request click karo → **Headers** → `authorization` copy karo",
+            "**How to get a token?**",
+            "Check tutorials given in the channel.",
         ].join("\n");
     }
     if (/token is required/i.test(err)) {
-        return "❌ **Token nahi diya!** Command ke saath apna Discord token do.";
+        return "❌ **did not give token!** Command ke saath apna Discord token do.";
     }
     if (/rate.?limit/i.test(err)) {
         return "⏱️ **Rate limited!** Discord ne temporarily block kar diya — thodi der baad try karo.";
@@ -434,7 +432,7 @@ async function runAndReport(
     if (result.error) {
         content = formatError(result.error);
     } else if (result.questsFound === 0) {
-        content = "😴 Abhi koi active quest nahi mili!";
+        content = "😴 I don't have any active quests now!";
     } else {
         content = `✅ **${result.questsFound}** quest(s) mili — **${result.questsCompleted}** complete!`;
     }
@@ -451,7 +449,7 @@ function checkCooldown(userId: string): { blocked: boolean; reason?: string } {
     if (activeUsers.has(userId)) {
         return {
             blocked: true,
-            reason: "⏳ Teri quest pehle se chal rahi hai, wait karo!",
+            reason: "⏳ Your quest is already running, wait!",
         };
     }
     const last = lastRunAt.get(userId);
@@ -544,7 +542,7 @@ client.on(
                     interaction.id,
                     interaction.token,
                     {
-                        content: "❌ Token nahi mila. Dobara try karo.",
+                        content: "❌ I did not get the token. Try again.",
                         flags: 64,
                     },
                 );
@@ -592,7 +590,7 @@ client.on(
                 );
                 const sendInitial = async () =>
                     api.interactions.editReply(CLIENT_ID!, interaction.token, {
-                        content: "⏳ Quest processing shuru ho gayi hai...",
+                        content: "⏳ Quest processing has started...",
                     });
                 const editFinal = async (c: string) =>
                     void (await api.interactions.editReply(
@@ -662,7 +660,7 @@ client.on(
             });
             const sendInitial = async () =>
                 api.interactions.editReply(CLIENT_ID!, interaction.token, {
-                    content: "⏳ Quest processing shuru ho gayi hai...",
+                    content: "⏳ Quest processing has started...",
                 });
             const editFinal = async (c: string) =>
                 void (await api.interactions.editReply(
@@ -702,7 +700,7 @@ client.on(
             const token = args.slice("status ".length).trim();
             if (!token) {
                 await api.channels.createMessage(message.channel_id, {
-                    content: "❌ Token chahiye: `!quest status <token>`",
+                    content: "❌ I want a token: `!quest status <token>`",
                     message_reference: { message_id: message.id },
                 });
                 return;
@@ -740,7 +738,7 @@ client.on(
             const sentMsg = await api.channels.createMessage(
                 message.channel_id,
                 {
-                    content: `⏳ <@${userId}> Quest processing shuru ho gayi...`,
+                    content: `⏳ <@${userId}> ⏳ Quest processing has started...`,
                 },
             );
             const editFinal = async (txt: string) => {
