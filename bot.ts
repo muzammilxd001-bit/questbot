@@ -21,6 +21,7 @@ if (!BOT_TOKEN) {
   console.error("BOT_TOKEN is required.");
   process.exit(1);
 }
+
 if (!CLIENT_ID) {
   console.error("CLIENT_ID is required.");
   process.exit(1);
@@ -49,78 +50,80 @@ const MODAL_STATUS = "quest_status_modal";
 const INPUT_TOKEN = "user_token_input";
 
 const TASK_LABELS: Record<string, string> = {
-  WATCH_VIDEO: "📺 Watch Video",
-  WATCH_VIDEO_ON_MOBILE: "📱 Watch Video on Mobile",
-  PLAY_ON_DESKTOP: "🖥️ Play on Desktop",
-  PLAY_ON_XBOX: "🎮 Play on Xbox",
-  PLAY_ON_PLAYSTATION: "🎮 Play on PlayStation",
-  PLAY_ACTIVITY: "🎯 Play Activity",
-  ACHIEVEMENT_IN_ACTIVITY: "🏆 Achievement",
-  STREAM_ON_DESKTOP: "📡 Stream on Desktop",
+  WATCH_VIDEO: "ðŸ“º Watch Video",
+  WATCH_VIDEO_ON_MOBILE: "ðŸ“± Watch Video on Mobile",
+  PLAY_ON_DESKTOP: "ðŸ–¥ï¸ Play on Desktop",
+  PLAY_ON_XBOX: "ðŸŽ® Play on Xbox",
+  PLAY_ON_PLAYSTATION: "ðŸŽ® Play on PlayStation",
+  PLAY_ACTIVITY: "ðŸŽ¯ Play Activity",
+  ACHIEVEMENT_IN_ACTIVITY: "ðŸ† Achievement",
+  STREAM_ON_DESKTOP: "ðŸ“¡ Stream on Desktop",
 };
 
 function makeBar(pct: number, len = 12): string {
   const filled = Math.round((pct / 100) * len);
-  return "█".repeat(filled) + "░".repeat(len - filled);
+  return "â–ˆ".repeat(filled) + "â–‘".repeat(len - filled);
 }
+
 
 function buildTokenRequiredEmbed() {
   return {
-    embeds: [
+    title: "Quest Bot",
+    description:
+      "Please provide your user token so I can check and complete your quests.",
+    color: 0xffc107,
+    fields: [
       {
-        color: 0x5865f2,
-        author: {
-          name: "Quest Access Panel",
-          icon_url: "https://cdn.discordapp.com/emojis/1061639553152372786.png",
-        },
-        title: "Link Your Token",
-        description:
-          "Access your quest tools using a clean, secure token setup.\n\n" +
-          "Use the buttons below to **link your token** or **check your current quest status**.",
-        fields: [
-          {
-            name: "Setup Guide",
-            value:
-              "• Open Discord in your **browser**\n" +
-              "• Press **Ctrl+Shift+I** and open **Network**\n" +
-              "• Filter with **XHR**\n" +
-              "• Send any message and copy the **Authorization** value",
-            inline: false,
-          },
-          {
-            name: "Important",
-            value:
-              "• Use your **user token** only\n" +
-              "• Never share it publicly\n" +
-              "• Paste it only in the popup modal",
-            inline: false,
-          },
-        ],
-        footer: {
-          text: "QuestBot • Premium Quest Access",
-        },
-        timestamp: new Date().toISOString(),
+        name: "How to use",
+        value: "Click the button below, paste your token, and submit.",
+      },
+      {
+        name: "Security note",
+        value: "Your token is only used to fetch quest info and run tasks.",
       },
     ],
+  };
+}
+
+function buildTokenModal() {
+  return {
+    title: "Enter Token",
+    custom_id: MODAL_RUN,
     components: [
       {
         type: ComponentType.ActionRow,
         components: [
           {
-            type: ComponentType.Button,
-            style: ButtonStyle.Primary,
-            custom_id: BTN_RUN,
-            label: "Link Token",
-            emoji: { name: "🔗" },
-          },
-          {
-            type: ComponentType.Button,
-            style: ButtonStyle.Secondary,
-            custom_id: BTN_STATUS,
-            label: "Quest Status",
-            emoji: { name: "📊" },
+            type: ComponentType.TextInput,
+            custom_id: INPUT_TOKEN,
+            label: "User Token",
+            style: TextInputStyle.Short,
+            required: true,
+            placeholder: "Paste your token here",
           },
         ],
+      },
+    ],
+  };
+}
+
+function buildCompleteEmbed(task: Quest) {
+  return {
+    title: "Quest Completed",
+    description: `Finished: ${TASK_LABELS[task.task_type] ?? task.task_type}`,
+    color: 0x57f287,
+  };
+}
+
+function buildStatusEmbed(status: QuestStatusInfo) {
+  return {
+    title: "Quest Status",
+    description: `Progress: ${status.progress}%`,
+    color: 0x5865f2,
+    fields: [
+      {
+        name: "Bar",
+        value: makeBar(status.progress),
       },
     ],
   };
