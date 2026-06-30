@@ -71,26 +71,45 @@ function buildTokenRequiredEmbed() {
     return {
         embeds: [
             {
-                color: 0xfaa61a,
-                title: "🔗 Token Required",
+                color: 0x5865f2,
+                author: {
+                    name: "Quest Access Panel",
+                    icon_url: "https://cdn.discordapp.com/emojis/1061639553152372786.png",
+                },
+                title: "Link Your Token",
                 description:
-                    "You need to link your Discord token before using quest commands.\n\n" +
-                    "Click **Link Token** below — a popup will appear right here in Discord " +
-                    "where you can paste your token. No DMs needed.",
+                    "Access your quest tools using a clean, secure token setup.
+
+" +
+                    "Use the buttons below to **link your token** or **check your current quest status**.",
                 fields: [
                     {
-                        name: "How to get your token:",
+                        name: "Setup Guide",
                         value:
-                            "1. Open Discord in your **browser** (not the app)\n" +
-                            "2. Press `Ctrl+Shift+I` → **Network** tab → filter `XHR`\n" +
-                            "3. Send any message, click the request, find `Authorization` in the headers\n" +
-                            "4. Copy that value and paste it into the popup",
+                            "• Open Discord in your **browser**
+" +
+                            "• Press **Ctrl+Shift+I** and open **Network**
+" +
+                            "• Filter with **XHR**
+" +
+                            "• Send any message and copy the **Authorization** value",
+                        inline: false,
                     },
                     {
-                        name: "⚠️ Warning",
-                        value: "This is your **user token**, NOT your bot token.",
+                        name: "Important",
+                        value:
+                            "• Use your **user token** only
+" +
+                            "• Never share it publicly
+" +
+                            "• Paste it only in the popup modal",
+                        inline: false,
                     },
                 ],
+                footer: {
+                    text: "QuestBot • Premium Quest Access",
+                },
+                timestamp: new Date().toISOString(),
             },
         ],
         components: [
@@ -108,8 +127,8 @@ function buildTokenRequiredEmbed() {
                         type: ComponentType.Button,
                         style: ButtonStyle.Secondary,
                         custom_id: BTN_STATUS,
-                        label: "Check Status",
-                        emoji: { name: "📋" },
+                        label: "Quest Status",
+                        emoji: { name: "📊" },
                     },
                 ],
             },
@@ -149,67 +168,77 @@ function buildCompleteEmbed(quest: Quest) {
     const gameTitle = cfg.messages.game_title;
     const publisher = cfg.messages.game_publisher;
     const appId = cfg.application.id;
+
     const color =
-        parseInt((cfg.colors?.primary ?? "#57F287").replace("#", ""), 16) ||
-        0x57f287;
+        parseInt((cfg.colors?.primary ?? "#5865F2").replace("#", ""), 16) ||
+        0x5865f2;
 
     const tasks = cfg.task_config_v2?.tasks ?? {};
     const taskLines = Object.entries(tasks)
-        .map(
-            ([k, v]: [string, any]) =>
-                `${TASK_LABELS[k] ?? k} • ${Math.ceil((v?.target ?? 0) / 60)} min ✓`,
-        )
-        .join("\n");
+        .map(([k, v]: [string, any]) => {
+            const mins = Math.ceil((v?.target ?? 0) / 60);
+            return `• ${TASK_LABELS[k] ?? k} (${mins} min)`;
+        })
+        .join("
+");
 
     const expiresAt = new Date(cfg.expires_at);
     const expiresUnix = Math.floor(expiresAt.getTime() / 1000);
-    const daysLeft = Math.max(
-        0,
-        Math.ceil((expiresAt.getTime() - Date.now()) / 86_400_000),
-    );
 
     const rewards = cfg.rewards_config?.rewards ?? [];
     const rewardLines = (rewards as any[])
         .map((r: any) =>
             r.orb_quantity
-                ? `${r.orb_quantity} Orbs ✦ (${r.messages?.name ?? ""})`
-                : (r.messages?.name ?? ""),
+                ? `• ${r.orb_quantity} Orbs ✦ (${r.messages?.name ?? "Reward"})`
+                : `• ${r.messages?.name ?? "Reward"}`
         )
-        .join("\n");
+        .join("
+");
 
     const gameTile = cfg.assets?.game_tile;
-    const thumbnail = gameTile
-        ? {
-              url: `https://media.discordapp.net/app-assets/${appId}/store/${gameTile}.png`,
-          }
-        : undefined;
+    const bannerUrl = gameTile
+        ? `https://media.discordapp.net/app-assets/${appId}/store/${gameTile}.png`
+        : null;
 
-    const embed: any = {
+    return {
         color,
-        title: "<:Verified:1519754442562339080> Quest Complete!",
-        description: `**${questName}**\n*${gameTitle} • ${publisher}*`,
+        author: {
+            name: "Quest Completed",
+            icon_url: "https://cdn.discordapp.com/emojis/1061639553152372786.png",
+        },
+        title: `✅ ${questName}`,
+        description: `**${gameTitle}**
+*${publisher}*`,
+        image: bannerUrl ? { url: bannerUrl } : undefined,
         fields: [
-            { name: "📋 Task", value: taskLines || "Unknown", inline: false },
             {
-                name: "📅 Expires",
-                value: `<t:${expiresUnix}:R> (${daysLeft}d left)`,
-                inline: true,
+                name: "Quest Info",
+                value:
+                    `**Expires:** <t:${expiresUnix}:D>
+` +
+                    `**Game:** ${gameTitle}
+` +
+                    `**Application:** ${gameTitle}
+` +
+                    `**Status:** Completed`,
+                inline: false,
             },
             {
-                name: "📊 Progress",
-                value: `\`${makeBar(100)}\`  100% — Done!`,
-                inline: true,
+                name: "Tasks",
+                value: taskLines || "• No task info available",
+                inline: false,
+            },
+            {
+                name: "Reward",
+                value: rewardLines || "• No reward listed",
+                inline: false,
             },
         ],
+        footer: {
+            text: "Quest finished successfully",
+        },
+        timestamp: new Date().toISOString(),
     };
-    if (rewardLines)
-        embed.fields.push({
-            name: "🎁 Reward",
-            value: rewardLines,
-            inline: false,
-        });
-    if (thumbnail) embed.thumbnail = thumbnail;
-    return embed;
 }
 
 // ── Build "Quest Status" embed (one per quest) ────────────────────────────────
@@ -218,14 +247,8 @@ function buildStatusEmbed(info: QuestStatusInfo) {
     const taskLabel = TASK_LABELS[info.taskName] ?? info.taskName;
     const targetMins = Math.ceil(info.targetSeconds / 60);
     const doneMins = Math.ceil(info.doneSeconds / 60);
-    const bar = makeBar(info.progressPct);
     const expiresUnix = Math.floor(info.expiresAt.getTime() / 1000);
-    const daysLeft = Math.max(
-        0,
-        Math.ceil((info.expiresAt.getTime() - Date.now()) / 86_400_000),
-    );
 
-    const statusIcon = info.isCompleted ? "✅" : info.isEnrolled ? "🔄" : "🆕";
     const statusText = info.isCompleted
         ? "Completed"
         : info.isEnrolled
@@ -233,40 +256,58 @@ function buildStatusEmbed(info: QuestStatusInfo) {
           : "Not Enrolled";
 
     const rewardText = info.orbQuantity
-        ? `${info.orbQuantity} Orbs ✦ (${info.rewardName})`
-        : info.rewardName;
+        ? `• ${info.orbQuantity} Orbs ✦ (${info.rewardName})`
+        : `• ${info.rewardName}`;
 
-    const thumbnail = info.gameTileAsset
-        ? {
-              url: `https://media.discordapp.net/app-assets/${info.appId}/store/${info.gameTileAsset}.png`,
-          }
-        : undefined;
+    const bannerUrl = info.gameTileAsset
+        ? `https://media.discordapp.net/app-assets/${info.appId}/store/${info.gameTileAsset}.png`
+        : null;
 
-    const embed: any = {
+    return {
         color,
-        title: `${statusIcon} ${info.name}`,
-        description: `*${info.gameTitle} • ${info.publisher}*`,
+        author: {
+            name: "New Quest Available",
+            icon_url: "https://cdn.discordapp.com/emojis/1061639553152372786.png",
+        },
+        title: `Play ${info.gameTitle}`,
+        description: `**${info.name}**`,
+        image: bannerUrl ? { url: bannerUrl } : undefined,
         fields: [
             {
-                name: "📋 Task",
-                value: `${taskLabel} • ${targetMins} min`,
+                name: "Quest Info",
+                value:
+                    `**Duration:** <t:${expiresUnix}:D>
+` +
+                    `**Redeemable Platforms:** Cross Platform
+` +
+                    `**Game:** ${info.gameTitle}
+` +
+                    `**Application:** ${info.gameTitle}
+` +
+                    `**Status:** ${statusText}`,
                 inline: false,
             },
             {
-                name: "📊 Progress",
-                value: `\`${bar}\`  ${info.progressPct}% (${doneMins}/${targetMins} min) — ${statusText}`,
+                name: "Tasks",
+                value:
+                    `User must complete the following task:
+` +
+                    `• ${taskLabel} (${targetMins} minutes)
+` +
+                    `• Progress: ${doneMins}/${targetMins} minutes (${info.progressPct}%)`,
                 inline: false,
             },
             {
-                name: "📅 Expires",
-                value: `<t:${expiresUnix}:R> (${daysLeft}d left)`,
-                inline: true,
+                name: "Reward",
+                value: rewardText || "• No reward listed",
+                inline: false,
             },
-            { name: "🎁 Reward", value: rewardText, inline: true },
         ],
+        footer: {
+            text: "Quest status preview",
+        },
+        timestamp: new Date().toISOString(),
     };
-    if (thumbnail) embed.thumbnail = thumbnail;
-    return embed;
 }
 
 // ── Format error messages ─────────────────────────────────────────────────────
