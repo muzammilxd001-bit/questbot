@@ -31,9 +31,12 @@ start a long-running bot process inside GitHub Actions.
 
 ## Bot Commands
 
+- `/quest-help` — open the command and safety guide
+- `/quest-ping` — check whether the bot is online
 - `/run-quests` — Auto-complete your Discord quests (requires your user token)
 - `/quest-status` — Check your active quests and progress
-- `!quest` — Show the button menu
+- `!quest` — Show the Quest Control Center
+- `!quest help` — Show the help guide
 
 ## Environment Variables
 
