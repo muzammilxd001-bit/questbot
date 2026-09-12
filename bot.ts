@@ -45,6 +45,7 @@ const client = new Client({ rest, gateway });
 // ── Custom IDs ────────────────────────────────────────────────────────────────
 const BTN_RUN = "quest_run_btn";
 const BTN_STATUS = "quest_status_btn";
+const BTN_HELP = "quest_help_btn";
 const MODAL_RUN = "quest_run_modal";
 const MODAL_STATUS = "quest_status_modal";
 const INPUT_TOKEN = "user_token_input";
@@ -71,26 +72,27 @@ function buildTokenRequiredEmbed() {
     return {
         embeds: [
             {
-                color: 0xfaa61a,
-                title: "🔗 Token Required",
+                color: 0x5865f2,
+                title: "Quest Control Center",
                 description:
-                    "You need to link your Discord token before using quest commands.\n\n" +
-                    "Click **Link Token** below — a popup will appear right here in Discord " +
-                    "where you can paste your token. No DMs needed.",
+                    "Manage quest status and runs from one polished panel.\n\n" +
+                    "Choose an action below to get started. Replies from the bot are private where possible.",
                 fields: [
                     {
-                        name: "How to get your token:",
+                        name: "Available actions",
                         value:
-                            "1. Open Discord in your **browser** (not the app)\n" +
-                            "2. Press `Ctrl+Shift+I` → **Network** tab → filter `XHR`\n" +
-                            "3. Send any message, click the request, find `Authorization` in the headers\n" +
-                            "4. Copy that value and paste it into the popup",
+                            "▶️ **Run quests** — start a quest run\n" +
+                            "📊 **Check status** — view progress and rewards\n" +
+                            "❔ **Help** — see commands and safety guidance",
+                        inline: false,
                     },
                     {
-                        name: "⚠️ Warning",
-                        value: "This is your **user token**, NOT your bot token.",
+                        name: "Security reminder",
+                        value: "Never paste a token into a public channel. Use the private popup and revoke any credential you believe was exposed.",
+                        inline: false,
                     },
                 ],
+                footer: { text: "Quest Control • Use responsibly" },
             },
         ],
         components: [
@@ -111,7 +113,86 @@ function buildTokenRequiredEmbed() {
                         label: "Check Status",
                         emoji: { name: "📋" },
                     },
+                    {
+                        type: ComponentType.Button,
+                        style: ButtonStyle.Secondary,
+                        custom_id: BTN_HELP,
+                        label: "Help",
+                        emoji: { name: "❔" },
+                    },
                 ],
+            },
+        ],
+    };
+}
+
+function buildHelpEmbed() {
+    return {
+        embeds: [
+            {
+                color: 0x8b5cf6,
+                title: "Quest Bot Help",
+                description:
+                    "A quick guide to the bot's commands and controls.",
+                fields: [
+                    {
+                        name: "Slash commands",
+                        value:
+                            "`/quest-help` — open this guide\n" +
+                            "`/quest-status` — view quest progress\n" +
+                            "`/run-quests` — start a quest run",
+                        inline: false,
+                    },
+                    {
+                        name: "Prefix commands",
+                        value:
+                            "`!quest` — open the control center\n" +
+                            "`!quest help` — open this guide\n" +
+                            "`!quest status <token>` — legacy status command",
+                        inline: false,
+                    },
+                    {
+                        name: "What the bot reports",
+                        value:
+                            "Progress, completion state, rewards, expiry time, rate limits, and authentication errors are shown as clearly as Discord allows.",
+                        inline: false,
+                    },
+                    {
+                        name: "Important",
+                        value:
+                            "Quest availability depends on Discord account eligibility and API support. Unsupported or blocked quests may be reported instead of completed.",
+                        inline: false,
+                    },
+                ],
+                footer: { text: "Quest Control • Help center" },
+                timestamp: new Date().toISOString(),
+            },
+        ],
+    };
+}
+
+function buildPingEmbed() {
+    return {
+        embeds: [
+            {
+                color: 0x57f287,
+                title: "Quest Bot Online",
+                description:
+                    "The bot is connected and ready to receive commands.",
+                fields: [
+                    {
+                        name: "Status",
+                        value: "🟢 Operational",
+                        inline: true,
+                    },
+                    {
+                        name: "Commands",
+                        value: "Use `/quest-help` to begin",
+                        inline: true,
+                    },
+                ],
+                footer: { text: "Quest Control • System status" },
+                timestamp: new Date().toISOString(),
             },
         ],
     };
@@ -201,6 +282,8 @@ function buildCompleteEmbed(quest: Quest) {
                 inline: true,
             },
         ],
+        footer: { text: "Quest Control • Completion report" },
+        timestamp: new Date().toISOString(),
     };
     if (rewardLines)
         embed.fields.push({
@@ -264,6 +347,8 @@ function buildStatusEmbed(info: QuestStatusInfo) {
             },
             { name: "🎁 Reward", value: rewardText, inline: true },
         ],
+        footer: { text: "Quest Control • Live status" },
+        timestamp: new Date().toISOString(),
     };
     if (thumbnail) embed.thumbnail = thumbnail;
     return embed;
@@ -403,6 +488,14 @@ async function registerCommands() {
                     },
                 ],
             },
+            {
+                name: "quest-help",
+                description: "Open the Quest Bot command and safety guide",
+            },
+            {
+                name: "quest-ping",
+                description: "Check whether the Quest Bot is online",
+            },
         ],
     });
     console.log(
@@ -527,6 +620,18 @@ client.on(
                 );
                 return;
             }
+
+            if (customId === BTN_HELP) {
+                await api.interactions.reply(
+                    interaction.id,
+                    interaction.token,
+                    {
+                        ...(buildHelpEmbed() as any),
+                        flags: 64,
+                    },
+                );
+                return;
+            }
             return;
         }
 
@@ -621,6 +726,30 @@ client.on(
         const cmdData = interaction.data as any;
         if (cmdData?.type !== ApplicationCommandType.ChatInput) return;
 
+        if (cmdData?.name === "quest-help") {
+            await api.interactions.reply(
+                interaction.id,
+                interaction.token,
+                {
+                    ...(buildHelpEmbed() as any),
+                    flags: 64,
+                },
+            );
+            return;
+        }
+
+        if (cmdData?.name === "quest-ping") {
+            await api.interactions.reply(
+                interaction.id,
+                interaction.token,
+                {
+                    ...(buildPingEmbed() as any),
+                    flags: 64,
+                },
+            );
+            return;
+        }
+
         const userToken: string | undefined = cmdData.options?.find(
             (o: any) => o.name === "token",
         )?.value;
@@ -695,6 +824,14 @@ client.on(
 
         const args = raw.slice(PREFIX.length).trim();
 
+        if (args.toLowerCase() === "help") {
+            await api.channels.createMessage(message.channel_id, {
+                ...(buildHelpEmbed() as any),
+                message_reference: { message_id: message.id },
+            });
+            return;
+        }
+
         // !quest status <token>  — legacy direct token support kept
         if (args.toLowerCase().startsWith("status ")) {
             const token = args.slice("status ".length).trim();
@@ -763,7 +900,7 @@ client.on(
             return;
         }
 
-        // !quest  or  !quest help  → show embed + buttons
+        // !quest panel → show the control center
         await api.channels.createMessage(message.channel_id, {
             ...(buildTokenRequiredEmbed() as any),
             message_reference: { message_id: message.id },
