@@ -5,7 +5,8 @@
   "main": "bot.ts",
   "scripts": {
     "start": "tsx bot.ts",
-    "dev": "tsx --inspect bot.ts"
+    "dev": "tsx --inspect bot.ts",
+    "check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
